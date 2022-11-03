@@ -7,8 +7,9 @@ import (
 	common "trading_be/bin/modules/utilities/common/handlers"
 	// zone "trading_be/bin/modules/utilities/zone/handlers"
 
-	// TRADES
+	// APPS
 	user "trading_be/bin/modules/apps/user/handlers"
+	transaction "trading_be/bin/modules/apps/transaction/handlers"
 
 	"github.com/labstack/echo/v4"
 )
@@ -29,4 +30,5 @@ func (s *Server) Routes() {
 
 	grupTrades := e.Group("/apps")
 	user.Init(grupTrades)
+	transaction.Init(grupTrades)
 }
