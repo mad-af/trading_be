@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"encoding/json"
 	"net/http"
 	"strings"
 	"time"
@@ -71,6 +72,11 @@ func VerifyBearerToken() echo.MiddlewareFunc {
 				return r.ReplyError("token parsing error", http.StatusUnauthorized)
 			}
 
+			var opts JwtClaim
+			var b, _ = json.Marshal(tokenParse.Claims)
+			json.Unmarshal(b, &opts)
+			c.Set("opts", opts)
+			
 			return next(c)
 		}
 	}

@@ -21,8 +21,7 @@ var u usecases.Interface = &usecases.Services{
 }
 
 func Init(g *echo.Group) {
-	g.POST("/v1/transaction", Create, m.BasicAuth())
-	g.POST("/v1/transaction/login", Login, m.BasicAuth())
+	g.POST("/v1/transaction", Create, m.VerifyBearerToken())
 	g.GET("/v1/transaction", GetList, m.VerifyBearerToken())
 	g.GET("/v1/transaction/:id", GetDetail, m.VerifyBearerToken())
 }
@@ -32,26 +31,13 @@ func Create(c echo.Context) error {
 	if err := utils.BindValidate(c, req); err != nil {
 		return err
 	}
+	req.Options = c.Get("opts").(m.JwtClaim)
 
 	var data, err = u.Create(c.Request().Context(), req)
 	if err != nil {
 		return err
 	}
 	data.Message = "Create transaction"
-	return res.Reply(&data, c)
-}
-
-func Login(c echo.Context) error {
-	var req = new(models.ReqLogin)
-	if err := utils.BindValidate(c, req); err != nil {
-		return err
-	}
-
-	var data, err = u.Login(c.Request().Context(), req)
-	if err != nil {
-		return err
-	}
-	data.Message = "Login"
 	return res.Reply(&data, c)
 }
 

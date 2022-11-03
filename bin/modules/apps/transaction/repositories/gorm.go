@@ -22,22 +22,18 @@ type Payload struct {
 	Output   interface{}
 }
 
-func (o *Options) CreateUser(user *models.Users) <-chan res {
+func (o *Options) CreateTransaction(transaction *models.Transactions) <-chan res {
 	var output = make(chan res)
 
 	go func() {
 		defer close(output)
 
 		var err = o.DB.Transaction(func(tx *gorm.DB) error {
-			if err := tx.Create(&user).Error; err != nil {
+			if err := tx.Create(&transaction).Error; err != nil {
 				return err
 			}
 
-			if err := tx.Create(&models.Balances{UserID: user.ID}).Error; err != nil {
-				return err
-			}
-
-			if err := tx.Create(&models.UserGrades{UserID: user.ID, GradeID: 1}).Error; err != nil {
+			if err := tx.Create(&models.TransactionStatus{TransactionID: transaction.ID, Status: "pending"}).Error; err != nil {
 				return err
 			}
 
@@ -48,7 +44,7 @@ func (o *Options) CreateUser(user *models.Users) <-chan res {
 			return
 		}
 
-		output <- res{Data: user.ID}
+		output <- res{Data: transaction.ID}
 	}()
 
 	return output

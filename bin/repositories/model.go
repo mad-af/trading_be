@@ -12,4 +12,5 @@ var ModelTables []interface{} = []interface{}{
 	&models.Balances{},
 	&models.TransactionStatus{},
 	&models.Transactions{},
+	&models.TransactionUserGrades{},
 }

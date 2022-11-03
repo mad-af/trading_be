@@ -6,75 +6,26 @@ import (
 	"math"
 	"net/http"
 	"strings"
-	"trading_be/bin/middleware"
 	"trading_be/bin/modules/apps/transaction/models"
 	rep "trading_be/bin/modules/apps/transaction/repositories"
 	r "trading_be/bin/pkg/response"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 func (s *Services) Create(c context.Context, p *models.ReqCreate) (result r.SendData, err error) {
 	var res = new(map[string]interface{})
 	result.Data = &res
 
-	var password, perr = bcrypt.GenerateFromPassword([]byte(p.Password), 11)
-	if perr != nil {
-		return result, perr
-	}
-
-	var user = <-s.Repository.CreateUser(&models.Users{
-		RoleID:   p.RoleID,
-		Name:     p.Name,
-		Username: p.Username,
-		Email:    p.Email,
-		Phone:    p.Phone,
-		Password: string(password),
+	var transaction = <-s.Repository.CreateTransaction(&models.Transactions{
+		UserID: p.Options.UserID,
+		BankID: p.BankID,
+		TransactionTypeID: p.TransactionTypeID,
+		Value: p.Value,
 	})
-	if user.Error != nil {
-		return result, user.Error
+	if transaction.Error != nil {
+		return result, transaction.Error
 	}
 
-	res = &map[string]interface{}{"id": user.Data}
-	return result, nil
-}
-
-func (s *Services) Login(c context.Context, p *models.ReqLogin) (result r.SendData, err error) {
-	var res = new(models.ResLogin)
-	result.Data = &res
-
-	err = r.ReplyError("Invalid username and password Please try again", http.StatusUnauthorized)
-	var user = <-s.Repository.Find(&rep.Payload{
-		Table:  "users u",
-		Join:   "inner join user_grades ug on ug.user_id = u.id",
-		Where:  map[string]interface{}{"username": p.Username},
-		Select: "u.*, ug.grade_id",
-		Output: &models.UserDetail{},
-	})
-	if user.Error != nil {
-		return result, user.Error
-	} else if user.Row == 0 {
-		return result, err
-	}
-
-	var userData = user.Data.(*models.UserDetail)
-	if berr := bcrypt.CompareHashAndPassword([]byte(userData.Password), []byte(p.Password)); berr != nil {
-		return result, err
-	}
-
-	var token, terr = middleware.GenerateToken(middleware.JwtClaim{
-		RoleID:  userData.RoleID,
-		UserID:  userData.ID,
-		GradeID: userData.GradeID,
-	})
-	if terr != nil {
-		return result, terr
-	}
-
-	res = &models.ResLogin{
-		ID:    userData.ID,
-		Token: token,
-	}
+	res = &map[string]interface{}{"id": transaction.Data}
 	return result, nil
 }
 

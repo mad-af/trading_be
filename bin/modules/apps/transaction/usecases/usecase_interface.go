@@ -16,7 +16,6 @@ type (
 	Interface interface {
 		// COMMAND
 		Create(context.Context, *models.ReqCreate) (res.SendData, error)
-		Login(context.Context, *models.ReqLogin) (res.SendData, error)
 
 		// QUERY
 		GetList(context.Context, *models.ReqGetList) (res.SendData, error)

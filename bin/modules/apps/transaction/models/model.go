@@ -2,6 +2,7 @@ package models
 
 import (
 	"time"
+	m "trading_be/bin/middleware"
 )
 
 type (
@@ -20,12 +21,10 @@ type (
 // REQUEST
 type (
 	ReqCreate struct {
-		RoleID   int    `json:"role_id"`
-		Name     string `json:"name"`
-		Username string `json:"username"`
-		Email    string `json:"email"`
-		Phone    string `json:"phone"`
-		Password string `json:"password"`
+		BankID            int        `json:"bank_id"`
+		TransactionTypeID int        `json:"transaction_type_id"`
+		Value             float64    `json:"value"`
+		Options           m.JwtClaim `json:"opts"`
 	}
 
 	ReqLogin struct {
@@ -49,6 +48,23 @@ type (
 
 // REPOSITORY
 type (
+	Transactions struct {
+		ID                string  `json:"id"`
+		UserID            string  `json:"user_id"`
+		BankID            int     `json:"bank_id"`
+		TransactionTypeID int     `json:"transaction_type_id"`
+		Value             float64 `json:"value"`
+		Description       string  `json:"description"`
+	}
+
+	TransactionStatus struct {
+		ID            string    `json:"id"`
+		TransactionID string    `json:"transaction_id"`
+		Status        string    `json:"status"`
+		CreatedAt     time.Time `json:"created_at"`
+		UpdatedAt     time.Time `json:"updated_at"`
+	}
+
 	Users struct {
 		ID        string    `json:"id"`
 		RoleID    int       `json:"role_id"`
