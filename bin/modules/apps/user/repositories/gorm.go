@@ -33,12 +33,14 @@ func (o *Options) CreateUser(user *models.Users) <-chan res {
 				return err
 			}
 
-			if err := tx.Create(&models.Balances{UserID: user.ID}).Error; err != nil {
-				return err
-			}
+			if user.RoleID == 1 {
+				if err := tx.Create(&models.Balances{UserID: user.ID}).Error; err != nil {
+					return err
+				}
 
-			if err := tx.Create(&models.UserGrades{UserID: user.ID, GradeID: 1}).Error; err != nil {
-				return err
+				if err := tx.Create(&models.UserGrades{UserID: user.ID, GradeID: 1}).Error; err != nil {
+					return err
+				}
 			}
 
 			return nil
