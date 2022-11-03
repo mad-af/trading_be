@@ -16,14 +16,14 @@ type (
 	ReplyMetaSend struct {
 		Err     bool        `json:"error"`
 		Data    interface{} `json:"data"`
-		Meta    *Meta        `json:"meta"`
+		Meta    *Meta       `json:"meta"`
 		Message string      `json:"message"`
 	}
 
 	SendData struct {
 		Code    int
 		Data    interface{} `json:"data"`
-		Meta    *Meta        `json:"meta"`
+		Meta    *Meta       `json:"meta"`
 		Message string      `json:"message"`
 	}
 

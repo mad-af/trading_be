@@ -16,6 +16,7 @@ import (
 
 var Env struct {
 	HttpPort string `json:"HTTP_PORT"`
+	ApiUrl   string `json:"API_URL"`
 	// POSTGRESQL
 	PostgreHost     string `json:"POSTGRES_HOST"`
 	PostgreUser     string `json:"POSTGRES_USER"`

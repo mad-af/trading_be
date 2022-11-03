@@ -70,8 +70,6 @@ type (
 	UserGrades struct {
 		UserID    string    `json:"user_id"`
 		GradeID   int       `json:"grade_id"`
-		CreatedAt time.Time `json:"created_at"`
-		UpdatedAt time.Time `json:"updated_at"`
 	}
 )
 
