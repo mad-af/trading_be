@@ -32,7 +32,7 @@ type (
 			ID string `param:"id" validate:"required"`
 		}
 		Type        string     `json:"type" validate:"required,oneof=status"`
-		Status      string     `json:"status" validate:"oneof=pending rejected canceled transfered checked finalized"`
+		Status      string     `json:"status" validate:"oneof=pending rejected canceled transfered checked finalized used"`
 		Description string     `json:"description"`
 		Options     m.JwtClaim `json:"opts"`
 	}

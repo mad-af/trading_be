@@ -7,6 +7,7 @@ var Status = struct {
 	Transfered string
 	Checked    string
 	Finalized  string
+	Used       string
 }{
 	"pending",
 	"rejected",
@@ -14,4 +15,5 @@ var Status = struct {
 	"transfered",
 	"checked",
 	"finalized",
+	"used",
 }

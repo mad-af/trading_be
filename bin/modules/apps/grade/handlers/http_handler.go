@@ -45,6 +45,7 @@ func Upgrade(c echo.Context) error {
 	if err := utils.BindValidate(c, req); err != nil {
 		return err
 	}
+	req.Options = c.Get("opts").(m.JwtClaim)
 
 	var data, err = u.Upgrade(c.Request().Context(), req)
 	if err != nil {

@@ -15,6 +15,7 @@ type (
 
 	ReqUpgrade struct {
 		TransactionID string     `json:"transaction_id"`
+		Options       m.JwtClaim `json:"opts"`
 	}
 )
 

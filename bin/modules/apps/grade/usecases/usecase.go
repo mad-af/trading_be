@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"context"
+	"log"
 	"net/http"
 
 	h "trading_be/bin/modules/apps/grade/helpers"
@@ -27,10 +28,10 @@ func (s *Services) Transaction(c context.Context, p *models.ReqTransaction) (res
 
 	var UserGradeStatus = <-s.Repository.Count(&rep.Payload{
 		Table: "transaction_user_grades tug",
-		Join: "inner join transactions t on t.id = tug.transaction_id",
+		Join:  "inner join transactions t on t.id = tug.transaction_id",
 		Where: map[string]interface{}{
 			"tug.user_grade_id": userGrade.Data.(*models.UserGrades).ID,
-			"t.status":   []string{h.Status.Pending, h.Status.Transfered, h.Status.Checked}},
+			"t.status":          []string{h.Status.Pending, h.Status.Transfered, h.Status.Checked}},
 		Select: "*",
 	})
 	if UserGradeStatus.Data.(int64) > 0 {
@@ -80,10 +81,11 @@ func (s *Services) Upgrade(c context.Context, p *models.ReqUpgrade) (result r.Se
 
 	var transaction = <-s.Repository.Find(&rep.Payload{
 		Table: "transactions t",
-		Join: "inner join transaction_user_grades tug on tug.transaction_id = t.id",
+		Join:  "inner join transaction_user_grades tug on tug.transaction_id = t.id",
 		Where: map[string]interface{}{
-			"t.id": p.TransactionID,
-			"t.status": h.Status.Finalized},
+			"t.id":                  p.TransactionID,
+			"t.status":              h.Status.Finalized,
+			"t.transaction_type_id": 1},
 		Select: "tug.*",
 		Output: &models.TransactionUserGrades{},
 	})
@@ -93,12 +95,24 @@ func (s *Services) Upgrade(c context.Context, p *models.ReqUpgrade) (result r.Se
 	var transactionUserGrade = transaction.Data.(*models.TransactionUserGrades)
 
 	var userGrade = <-s.Repository.UpdateUserGrade(&models.UserGrades{
-		ID: transactionUserGrade.UserGradeID,
+		ID:      transactionUserGrade.UserGradeID,
 		GradeID: transactionUserGrade.GradeID,
 	})
 	if userGrade.Error != nil {
-		return result, r.ReplyError("Failed to upgrade grade user", http.StatusNotFound)	
+		return result, r.ReplyError("Failed to upgrade grade user", http.StatusInternalServerError)
 	}
+
+	go func() {
+		transactionFetch, err := utils.FetchModule(&utils.FetchRequest{
+			Method:        http.MethodPut,
+			Url:           "/apps/v1/transaction/" + transactionUserGrade.TransactionID,
+			Authorization: "Bearer " + p.Options.Token,
+			Body:          map[string]interface{}{"type": "status", "status": h.Status.Used},
+		})
+		if err != nil || transactionFetch.Err {
+			log.Println("grade-upgrade:update-status-transaction: " + transactionFetch.Message)
+		}
+	}()
 
 	res = userGrade.Data
 	return result, nil
