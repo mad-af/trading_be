@@ -73,3 +73,33 @@ func (s *Services) Transaction(c context.Context, p *models.ReqTransaction) (res
 	res = grades.Data.(*models.TransactionUserGrades)
 	return result, nil
 }
+
+func (s *Services) Upgrade(c context.Context, p *models.ReqUpgrade) (result r.SendData, err error) {
+	var res interface{}
+	result.Data = &res
+
+	var transaction = <-s.Repository.Find(&rep.Payload{
+		Table: "transactions t",
+		Join: "inner join transaction_user_grades tug on tug.transaction_id = t.id",
+		Where: map[string]interface{}{
+			"t.id": p.TransactionID,
+			"t.status": h.Status.Finalized},
+		Select: "tug.*",
+		Output: &models.TransactionUserGrades{},
+	})
+	if transaction.Error != nil || transaction.Row == 0 {
+		return result, r.ReplyError("Transaction not found", http.StatusNotFound)
+	}
+	var transactionUserGrade = transaction.Data.(*models.TransactionUserGrades)
+
+	var userGrade = <-s.Repository.UpdateUserGrade(&models.UserGrades{
+		ID: transactionUserGrade.UserGradeID,
+		GradeID: transactionUserGrade.GradeID,
+	})
+	if userGrade.Error != nil {
+		return result, r.ReplyError("Failed to upgrade grade user", http.StatusNotFound)	
+	}
+
+	res = userGrade.Data
+	return result, nil
+}

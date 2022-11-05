@@ -38,6 +38,24 @@ func (o *Options) CreateTransactionUserGrade(data *models.TransactionUserGrades)
 	return output
 }
 
+func (o *Options) UpdateUserGrade(data *models.UserGrades) <-chan res {
+	var output = make(chan res)
+
+	go func() {
+		defer close(output)
+
+		var db = o.DB.Table("user_grades").Where("id = ?", data.ID).Select("grade_id").Updates(&data)
+		if db.Error != nil {
+			output <- res{Error: db.Error}
+			return
+		}
+
+		output <- res{Data: data}
+	}()
+
+	return output
+}
+
 func (o *Options) Find(p *Payload) <-chan res {
 	var output = make(chan res)
 

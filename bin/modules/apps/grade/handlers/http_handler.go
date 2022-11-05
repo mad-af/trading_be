@@ -22,6 +22,7 @@ var u usecases.Interface = &usecases.Services{
 
 func Init(g *echo.Group) {
 	g.POST("/v1/grade/transaction", Transaction, m.VerifyBearerToken())
+	g.POST("/v1/grade/upgrade", Upgrade, m.VerifyBearerToken())
 }
 
 func Transaction(c echo.Context) error {
@@ -35,6 +36,20 @@ func Transaction(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	data.Message = "Upgrade"
+	data.Message = "Grade transaction"
+	return res.Reply(&data, c)
+}
+
+func Upgrade(c echo.Context) error {
+	var req = new(models.ReqUpgrade)
+	if err := utils.BindValidate(c, req); err != nil {
+		return err
+	}
+
+	var data, err = u.Upgrade(c.Request().Context(), req)
+	if err != nil {
+		return err
+	}
+	data.Message = "Grade upgrade"
 	return res.Reply(&data, c)
 }

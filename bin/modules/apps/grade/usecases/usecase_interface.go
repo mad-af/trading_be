@@ -16,5 +16,6 @@ type (
 	Interface interface {
 		// COMMAND
 		Transaction(context.Context, *models.ReqTransaction) (res.SendData, error)
+		Upgrade(context.Context, *models.ReqUpgrade) (res.SendData, error)
 	}
 )
