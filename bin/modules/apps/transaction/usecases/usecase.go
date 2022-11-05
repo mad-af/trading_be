@@ -3,6 +3,7 @@ package usecases
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"math"
 	"net/http"
 	"strings"
@@ -10,6 +11,7 @@ import (
 	"trading_be/bin/modules/apps/transaction/models"
 	rep "trading_be/bin/modules/apps/transaction/repositories"
 	r "trading_be/bin/pkg/response"
+	"trading_be/bin/pkg/utils"
 )
 
 func (s *Services) Create(c context.Context, p *models.ReqCreate) (result r.SendData, err error) {
@@ -35,6 +37,17 @@ func (s *Services) Update(c context.Context, p *models.ReqUpdate) (result r.Send
 	var res = new(map[string]interface{})
 	result.Data = &res
 
+	var transactions = <-s.Repository.Find(&rep.Payload{
+		Table: "transactions t",
+		Where: map[string]interface{}{"id": p.Param.ID},
+		Select: "*",
+		Output: &models.Transactions{},
+	})
+	if transactions.Error != nil || transactions.Row == 0 {
+		return result, r.ReplyError("Transaction not found", http.StatusNotFound)
+	}
+	var transactionData = transactions.Data.(*models.Transactions)
+
 	if p.Type == "status" {
 		var transaction = models.Transactions{
 			ID:     p.Param.ID,
@@ -49,6 +62,24 @@ func (s *Services) Update(c context.Context, p *models.ReqUpdate) (result r.Send
 		if status.Error != nil {
 			return result, status.Error
 		}
+
+		if p.Status == h.Status.Finalized {
+			switch transactionData.TransactionTypeID {
+			case 1:
+				go func() {
+					transactionFetch, err := utils.FetchModule(&utils.FetchRequest{
+						Method:        http.MethodPost,
+						Url:           "/apps/v1/grade/upgrade",
+						Authorization: "Bearer " + p.Options.Token,
+						Body:          map[string]interface{}{"transaction_id": p.Param.ID},
+					})
+					if err != nil || transactionFetch.Err {
+						log.Println("transaction-update-status:upgrade: " + transactionFetch.Message)
+					}
+				}()	
+			}
+		}
+
 		res = &map[string]interface{}{"id": p.Param.ID, "status": p.Status}
 	}
 

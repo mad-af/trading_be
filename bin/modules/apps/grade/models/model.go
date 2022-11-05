@@ -29,7 +29,7 @@ type (
 
 	UserGrades struct {
 		ID      string `json:"id"`
-		UserID  string `json:"user_id"`
+		UserID  string `json:"user_id,omitempty"`
 		GradeID int    `json:"grade_id"`
 	}
 
