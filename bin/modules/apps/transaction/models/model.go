@@ -27,6 +27,16 @@ type (
 		Options           m.JwtClaim `json:"opts"`
 	}
 
+	ReqUpdate struct {
+		Param struct {
+			ID string `param:"id" validate:"required"`
+		}
+		Type        string     `json:"type" validate:"required,oneof=status"`
+		Status      string     `json:"status" validate:"oneof=pending rejected canceled transfered checked finalized"`
+		Description string     `json:"description"`
+		Options     m.JwtClaim `json:"opts"`
+	}
+
 	ReqLogin struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
@@ -54,6 +64,7 @@ type (
 		BankID            int     `json:"bank_id"`
 		TransactionTypeID int     `json:"transaction_type_id"`
 		Value             float64 `json:"value"`
+		Status            string  `json:"status"`
 		Description       string  `json:"description"`
 	}
 
@@ -61,8 +72,8 @@ type (
 		ID            string    `json:"id"`
 		TransactionID string    `json:"transaction_id"`
 		Status        string    `json:"status"`
+		CreatedBy     string    `json:"created_by"`
 		CreatedAt     time.Time `json:"created_at"`
-		UpdatedAt     time.Time `json:"updated_at"`
 	}
 
 	Users struct {

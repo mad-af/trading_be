@@ -22,6 +22,7 @@ var u usecases.Interface = &usecases.Services{
 
 func Init(g *echo.Group) {
 	g.POST("/v1/transaction", Create, m.VerifyBearerToken())
+	g.PUT("/v1/transaction/:id", Update, m.VerifyBearerToken())
 	g.GET("/v1/transaction", GetList, m.VerifyBearerToken())
 	g.GET("/v1/transaction/:id", GetDetail, m.VerifyBearerToken())
 }
@@ -38,6 +39,21 @@ func Create(c echo.Context) error {
 		return err
 	}
 	data.Message = "Create transaction"
+	return res.Reply(&data, c)
+}
+
+func Update(c echo.Context) error {
+	var req = new(models.ReqUpdate)
+	if err := utils.BindValidate(c, req); err != nil {
+		return err
+	}
+	req.Options = c.Get("opts").(m.JwtClaim)
+
+	var data, err = u.Update(c.Request().Context(), req)
+	if err != nil {
+		return err
+	}
+	data.Message = "Update transaction"
 	return res.Reply(&data, c)
 }
 

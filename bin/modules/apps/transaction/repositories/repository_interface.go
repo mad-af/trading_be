@@ -12,7 +12,8 @@ type (
 	}
 
 	Interface interface {
-		CreateTransaction(*models.Transactions) <-chan res
+		CreateTransaction(*models.Transactions, string) <-chan res
+		UpdateStatusTransaction(*models.Transactions, string) <-chan res
 		Find(*Payload) <-chan res
 		Count(*Payload) <-chan res
 	}

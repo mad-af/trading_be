@@ -22,7 +22,7 @@ type Payload struct {
 	Output   interface{}
 }
 
-func (o *Options) CreateTransaction(transaction *models.Transactions) <-chan res {
+func (o *Options) CreateTransaction(transaction *models.Transactions, createdBy string) <-chan res {
 	var output = make(chan res)
 
 	go func() {
@@ -33,7 +33,43 @@ func (o *Options) CreateTransaction(transaction *models.Transactions) <-chan res
 				return err
 			}
 
-			if err := tx.Create(&models.TransactionStatus{TransactionID: transaction.ID, Status: "pending"}).Error; err != nil {
+			if err := tx.Create(&models.TransactionStatus{
+				TransactionID: transaction.ID, 
+				Status: transaction.Status, 
+				CreatedBy: createdBy,
+			}).Error; err != nil {
+				return err
+			}
+
+			return nil
+		})
+		if err != nil {
+			output <- res{Error: err}
+			return
+		}
+
+		output <- res{Data: transaction.ID}
+	}()
+
+	return output
+}
+
+func (o *Options) UpdateStatusTransaction(transaction *models.Transactions, createdBy string) <-chan res {
+	var output = make(chan res)
+
+	go func() {
+		defer close(output)
+
+		var err = o.DB.Transaction(func(tx *gorm.DB) error {
+			if err := tx.Table("transactions").Where("id = ?", transaction.ID).Select("status", "description").Updates(&transaction).Error; err != nil {
+				return err
+			}
+
+			if err := tx.Create(&models.TransactionStatus{
+				TransactionID: transaction.ID, 
+				Status: transaction.Status, 
+				CreatedBy: createdBy,
+			}).Error; err != nil {
 				return err
 			}
 

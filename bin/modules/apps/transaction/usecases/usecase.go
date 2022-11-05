@@ -6,6 +6,7 @@ import (
 	"math"
 	"net/http"
 	"strings"
+	h "trading_be/bin/modules/apps/transaction/helpers"
 	"trading_be/bin/modules/apps/transaction/models"
 	rep "trading_be/bin/modules/apps/transaction/repositories"
 	r "trading_be/bin/pkg/response"
@@ -16,16 +17,41 @@ func (s *Services) Create(c context.Context, p *models.ReqCreate) (result r.Send
 	result.Data = &res
 
 	var transaction = <-s.Repository.CreateTransaction(&models.Transactions{
-		UserID: p.Options.UserID,
-		BankID: p.BankID,
+		UserID:            p.Options.UserID,
+		BankID:            p.BankID,
 		TransactionTypeID: p.TransactionTypeID,
-		Value: p.Value,
-	})
+		Status:            h.Status.Pending,
+		Value:             p.Value,
+	}, p.Options.UserID)
 	if transaction.Error != nil {
 		return result, transaction.Error
 	}
 
 	res = &map[string]interface{}{"id": transaction.Data}
+	return result, nil
+}
+
+func (s *Services) Update(c context.Context, p *models.ReqUpdate) (result r.SendData, err error) {
+	var res = new(map[string]interface{})
+	result.Data = &res
+
+	if p.Type == "status" {
+		var transaction = models.Transactions{
+			ID:     p.Param.ID,
+			Status: p.Status,
+		}
+		switch p.Status {
+		case h.Status.Rejected, h.Status.Canceled:
+			transaction.Description = p.Description
+		}
+
+		var status = <-s.Repository.UpdateStatusTransaction(&transaction, p.Options.UserID)
+		if status.Error != nil {
+			return result, status.Error
+		}
+		res = &map[string]interface{}{"id": p.Param.ID, "status": p.Status}
+	}
+
 	return result, nil
 }
 
