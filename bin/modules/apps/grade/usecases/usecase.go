@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	h "trading_be/bin/modules/apps/grade/helpers"
 	"trading_be/bin/modules/apps/grade/models"
 	rep "trading_be/bin/modules/apps/grade/repositories"
 	r "trading_be/bin/pkg/response"
@@ -22,6 +23,18 @@ func (s *Services) Upgrade(c context.Context, p *models.ReqUpgrade) (result r.Se
 	})
 	if userGrade.Error != nil {
 		return result, r.ReplyError("User not found", http.StatusNotFound)
+	}
+
+	var UserGradeStatus = <-s.Repository.Count(&rep.Payload{
+		Table: "transaction_user_grades tug",
+		Join: "inner join transactions t on t.id = tug.transaction_id",
+		Where: map[string]interface{}{
+			"tug.user_grade_id": userGrade.Data.(*models.UserGrades).ID,
+			"t.status":   []string{h.Status.Pending, h.Status.Transfered, h.Status.Checked}},
+		Select: "*",
+	})
+	if UserGradeStatus.Data.(int64) > 0 {
+		return result, r.ReplyError("There are still active grade upgrade transactions", http.StatusInternalServerError)
 	}
 
 	var grade = <-s.Repository.Find(&rep.Payload{

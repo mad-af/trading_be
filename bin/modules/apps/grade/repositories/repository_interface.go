@@ -14,5 +14,6 @@ type (
 	Interface interface {
 		CreateTransactionUserGrade(*models.TransactionUserGrades) <-chan res
 		Find(p *Payload) <-chan res
+		Count(p *Payload) <-chan res
 	}
 )

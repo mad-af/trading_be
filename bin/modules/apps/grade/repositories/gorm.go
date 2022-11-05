@@ -55,3 +55,22 @@ func (o *Options) Find(p *Payload) <-chan res {
 
 	return output
 }
+
+func (o *Options) Count(p *Payload) <-chan res {
+	var output = make(chan res)
+
+	go func() {
+		defer close(output)
+
+		var count int64
+		var db = o.DB.Table(p.Table).Select(p.Select).Where(p.Where).Order(p.Order).Joins(p.Join).Count(&count)
+		if db.Error != nil {
+			output <- res{Error: db.Error}
+			return
+		}
+
+		output <- res{Data: count, Row: db.RowsAffected}
+	}()
+
+	return output
+}
