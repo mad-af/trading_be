@@ -16,5 +16,6 @@ type (
 	Interface interface {
 		// COMMAND
 		TopUp(context.Context, *models.ReqTopUp) (res.SendData, error)
+		Payment(context.Context, *models.ReqPayment) (res.SendData, error)
 	}
 )

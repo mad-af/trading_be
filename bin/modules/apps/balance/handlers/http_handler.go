@@ -22,7 +22,7 @@ var u usecases.Interface = &usecases.Services{
 
 func Init(g *echo.Group) {
 	g.POST("/v1/balance/topup", TopUp, m.VerifyBearerToken())
-	// g.POST("/v1/balance/payment", Payment, m.VerifyBearerToken())
+	g.POST("/v1/balance/payment", Payment, m.VerifyBearerToken())
 }
 
 func TopUp(c echo.Context) error {
@@ -40,17 +40,17 @@ func TopUp(c echo.Context) error {
 	return res.Reply(&data, c)
 }
 
-// func Payment(c echo.Context) error {
-// 	var req = new(models.ReqTopUp)
-// 	if err := utils.BindValidate(c, req); err != nil {
-// 		return err
-// 	}
-// 	req.Options = c.Get("opts").(m.JwtClaim)
+func Payment(c echo.Context) error {
+	var req = new(models.ReqPayment)
+	if err := utils.BindValidate(c, req); err != nil {
+		return err
+	}
+	req.Options = c.Get("opts").(m.JwtClaim)
 
-// 	var data, err = u.TopUp(c.Request().Context(), req)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	data.Message = "Balance top up"
-// 	return res.Reply(&data, c)
-// }
+	var data, err = u.Payment(c.Request().Context(), req)
+	if err != nil {
+		return err
+	}
+	data.Message = "Balance payment"
+	return res.Reply(&data, c)
+}

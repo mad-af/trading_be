@@ -22,13 +22,31 @@ type Payload struct {
 	Output   interface{}
 }
 
-func (o *Options) UpdateBalance(data *models.Balances) <-chan res {
+func (o *Options) UpdateBalanceIncrease(data *models.Balances) <-chan res {
 	var output = make(chan res)
 
 	go func() {
 		defer close(output)
 
 		var db = o.DB.Table("balances").Where("user_id = ?", data.UserID).Update("value", gorm.Expr("value + ?", data.Value))
+		if db.Error != nil {
+			output <- res{Error: db.Error}
+			return
+		}
+
+		output <- res{Data: data}
+	}()
+
+	return output
+}
+
+func (o *Options) UpdateBalanceSubtraction(data *models.Balances) <-chan res {
+	var output = make(chan res)
+
+	go func() {
+		defer close(output)
+
+		var db = o.DB.Table("balances").Where("user_id = ?", data.UserID).Update("value", gorm.Expr("value - ?", data.Value))
 		if db.Error != nil {
 			output <- res{Error: db.Error}
 			return

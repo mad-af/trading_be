@@ -12,7 +12,8 @@ type (
 	}
 
 	Interface interface {
-		UpdateBalance(data *models.Balances) <-chan res
+		UpdateBalanceIncrease(data *models.Balances) <-chan res
+		UpdateBalanceSubtraction(data *models.Balances) <-chan res
 		Find(p *Payload) <-chan res
 	}
 )
