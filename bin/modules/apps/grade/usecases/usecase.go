@@ -11,7 +11,7 @@ import (
 	"trading_be/bin/pkg/utils"
 )
 
-func (s *Services) Upgrade(c context.Context, p *models.ReqUpgrade) (result r.SendData, err error) {
+func (s *Services) Transaction(c context.Context, p *models.ReqTransaction) (result r.SendData, err error) {
 	var res = new(models.TransactionUserGrades)
 	result.Data = &res
 

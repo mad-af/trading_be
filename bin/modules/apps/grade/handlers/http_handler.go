@@ -21,17 +21,17 @@ var u usecases.Interface = &usecases.Services{
 }
 
 func Init(g *echo.Group) {
-	g.POST("/v1/grade/upgrade", Upgrade, m.VerifyBearerToken())
+	g.POST("/v1/grade/transaction", Transaction, m.VerifyBearerToken())
 }
 
-func Upgrade(c echo.Context) error {
-	var req = new(models.ReqUpgrade)
+func Transaction(c echo.Context) error {
+	var req = new(models.ReqTransaction)
 	if err := utils.BindValidate(c, req); err != nil {
 		return err
 	}
 	req.Options = c.Get("opts").(m.JwtClaim)
 
-	var data, err = u.Upgrade(c.Request().Context(), req)
+	var data, err = u.Transaction(c.Request().Context(), req)
 	if err != nil {
 		return err
 	}

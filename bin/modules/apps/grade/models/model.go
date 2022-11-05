@@ -7,7 +7,7 @@ import (
 
 // REQUEST
 type (
-	ReqUpgrade struct {
+	ReqTransaction struct {
 		BankID  int        `json:"bank_id"`
 		GradeID int        `json:"grade_id"`
 		Options m.JwtClaim `json:"opts"`
