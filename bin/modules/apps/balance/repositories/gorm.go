@@ -2,6 +2,8 @@ package repositories
 
 import (
 	"trading_be/bin/modules/apps/balance/models"
+
+	"gorm.io/gorm"
 )
 
 type res struct {
@@ -26,7 +28,7 @@ func (o *Options) UpdateBalance(data *models.Balances) <-chan res {
 	go func() {
 		defer close(output)
 
-		var db = o.DB.Table("user_grades").Where("id = ?", data.ID).Select("grade_id").Updates(&data)
+		var db = o.DB.Table("balances").Where("user_id = ?", data.UserID).Update("value", gorm.Expr("value + ?", data.Value))
 		if db.Error != nil {
 			output <- res{Error: db.Error}
 			return

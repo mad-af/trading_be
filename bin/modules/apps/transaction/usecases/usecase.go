@@ -38,8 +38,8 @@ func (s *Services) Update(c context.Context, p *models.ReqUpdate) (result r.Send
 	result.Data = &res
 
 	var transactions = <-s.Repository.Find(&rep.Payload{
-		Table: "transactions t",
-		Where: map[string]interface{}{"id": p.Param.ID},
+		Table:  "transactions t",
+		Where:  map[string]interface{}{"id": p.Param.ID},
 		Select: "*",
 		Output: &models.Transactions{},
 	})
@@ -76,7 +76,19 @@ func (s *Services) Update(c context.Context, p *models.ReqUpdate) (result r.Send
 					if err != nil || transactionFetch.Err {
 						log.Println("transaction-update-status:upgrade: " + transactionFetch.Message)
 					}
-				}()	
+				}()
+			case 2:
+				go func() {
+					transactionFetch, err := utils.FetchModule(&utils.FetchRequest{
+						Method:        http.MethodPost,
+						Url:           "/apps/v1/balance/topup",
+						Authorization: "Bearer " + p.Options.Token,
+						Body:          map[string]interface{}{"transaction_id": p.Param.ID},
+					})
+					if err != nil || transactionFetch.Err {
+						log.Println("transaction-update-status:topup: " + transactionFetch.Message)
+					}
+				}()
 			}
 		}
 

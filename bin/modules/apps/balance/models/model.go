@@ -25,7 +25,7 @@ type (
 	}
 
 	Balances struct {
-		ID     string  `json:"id"`
+		ID     string  `json:"id,omitempty"`
 		UserID string  `json:"user_id"`
 		Value  float64 `json:"value"`
 	}
