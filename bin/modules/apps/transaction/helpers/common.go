@@ -17,3 +17,13 @@ var Status = struct {
 	"finalized",
 	"used",
 }
+
+var StatusMap = map[string]int{
+	"pending": 0,
+	"transfered": 1,
+	"checked": 2,
+	"finalized": 3,
+	"used": 4,
+	"rejected": 99,
+	"canceled": 99,
+}

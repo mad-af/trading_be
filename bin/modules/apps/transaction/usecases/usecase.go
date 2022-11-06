@@ -49,6 +49,10 @@ func (s *Services) Update(c context.Context, p *models.ReqUpdate) (result r.Send
 	var transactionData = transactions.Data.(*models.Transactions)
 
 	if p.Type == "status" {
+		if h.StatusMap[transactionData.Status] > h.StatusMap[p.Status] {
+			return result, r.ReplyError("Cannot update status transaction", http.StatusConflict)
+		}
+
 		var transaction = models.Transactions{
 			ID:     p.Param.ID,
 			Status: p.Status,
@@ -99,7 +103,7 @@ func (s *Services) Update(c context.Context, p *models.ReqUpdate) (result r.Send
 }
 
 func (s *Services) GetList(c context.Context, p *models.ReqGetList) (result r.SendData, err error) {
-	var res = make([]models.UserList, 0)
+	var res = make([]models.TransactionList, 0)
 	var meta = r.Meta{Page: p.Query.Page}
 	result.Data = &res
 	result.Meta = &meta
@@ -111,8 +115,11 @@ func (s *Services) GetList(c context.Context, p *models.ReqGetList) (result r.Se
 
 	// USECASE
 	var counting = <-s.Repository.Count(&rep.Payload{
-		Table:    "users u",
-		Join:     "inner join user_grades ug on ug.user_id = u.id",
+		Table: "transactions t",
+		Join: `
+			inner join users u on u.id = t.user_id
+			inner join transaction_status ts on ts.transaction_id = t.id and ts.status = 'pending'
+			inner join transaction_status ts1 on ts1.transaction_id = t.id and ts1.status = t.status`,
 		Where:    filter,
 		WhereRaw: search,
 	})
@@ -121,25 +128,30 @@ func (s *Services) GetList(c context.Context, p *models.ReqGetList) (result r.Se
 	}
 	meta.TotalData = int(counting.Data.(int64))
 
-	var users = <-s.Repository.Find(&rep.Payload{
-		Table: "users u",
+	var transaction = <-s.Repository.Find(&rep.Payload{
+		Table: "transactions t",
 		Join: `
-			inner join user_grades ug on ug.user_id = u.id
-			left join grades g on g.id = ug.grade_id
-			left join roles r on r.id = u.role_id`,
+			inner join users u on u.id = t.user_id
+			inner join banks b on b.id = t.bank_id
+			inner join transaction_types tt on tt.id = t.transaction_type_id
+			inner join transaction_status ts on ts.transaction_id = t.id and ts.status = 'pending'
+			inner join transaction_status ts1 on ts1.transaction_id = t.id and ts1.status = t.status`,
 		Where:    filter,
 		WhereRaw: search,
-		Select:   "u.*, g.name as grade_name, r.name as role_name",
-		Order:    strings.Join(p.Query.Sort, " "),
-		Output:   []models.UserList{},
+		Select: `t.*, u.name as user_name, b.name as bank_name, tt.name as transaction_type_name, 
+			ts.created_at, ts1.created_at as updated_at`,
+		Order:  strings.Join(p.Query.Sort, " "),
+		Offset: p.Query.Quantity * (p.Query.Page - 1),
+		Limit:  p.Query.Quantity,
+		Output: []models.TransactionList{},
 	})
-	if users.Error != nil {
+	if transaction.Error != nil {
 		return result, nil
 	}
-	meta.Quantity = int(users.Row)
+	meta.Quantity = int(transaction.Row)
 	meta.TotalPage = int(math.Ceil(float64((meta.TotalData + p.Query.Quantity - 1) / p.Query.Quantity)))
 
-	res = users.Data.([]models.UserList)
+	res = transaction.Data.([]models.TransactionList)
 	return result, nil
 }
 

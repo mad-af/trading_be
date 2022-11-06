@@ -37,11 +37,6 @@ type (
 		Options     m.JwtClaim `json:"opts"`
 	}
 
-	ReqLogin struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-	}
-
 	ReqGetList struct {
 		Query struct {
 			Pagination
@@ -87,28 +82,10 @@ type (
 		CreatedAt time.Time `json:"created_at"`
 		UpdatedAt time.Time `json:"updated_at"`
 	}
-
-	Balances struct {
-		ID     string `json:"id"`
-		UserID string `json:"user_id"`
-		Value  int64  `json:"value"`
-	}
-
-	UserGrades struct {
-		UserID    string    `json:"user_id"`
-		GradeID   int       `json:"grade_id"`
-		CreatedAt time.Time `json:"created_at"`
-		UpdatedAt time.Time `json:"updated_at"`
-	}
 )
 
 // COMMON
 type (
-	ResLogin struct {
-		ID    string `json:"id"`
-		Token string `json:"token"`
-	}
-
 	UserDetail struct {
 		Users
 		GradeID      int    `json:"grade_id"`
@@ -117,9 +94,12 @@ type (
 		BalanceValue int    `json:"balance_value"`
 	}
 
-	UserList struct {
-		Users
-		GradeName string `json:"grade_name"`
-		RoleName  string `json:"role_name"`
+	TransactionList struct {
+		Transactions
+		UserName            string    `json:"user_name"`
+		BankName            string    `json:"bank_name"`
+		TransactionTypeName string    `json:"transaction_type_name"`
+		CreatedAt           time.Time `json:"created_at"`
+		UpdatedAt           time.Time `json:"updated_at"`
 	}
 )

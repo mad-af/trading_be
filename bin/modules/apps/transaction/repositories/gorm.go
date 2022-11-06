@@ -19,6 +19,8 @@ type Payload struct {
 	Join     string
 	Select   string
 	Order    string
+	Limit     int
+	Offset    int
 	Output   interface{}
 }
 
@@ -92,7 +94,7 @@ func (o *Options) Find(p *Payload) <-chan res {
 	go func() {
 		defer close(output)
 
-		var db = o.DB.Table(p.Table).Select(p.Select).Where(p.Where).Where(p.WhereRaw).Order(p.Order).Joins(p.Join).Find(&p.Output)
+		var db = o.DB.Table(p.Table).Select(p.Select).Where(p.Where).Where(p.WhereRaw).Order(p.Order).Joins(p.Join).Limit(p.Limit).Offset(p.Offset).Find(&p.Output)
 		if db.Error != nil {
 			output <- res{Error: db.Error}
 			return
