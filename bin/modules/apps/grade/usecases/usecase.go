@@ -32,10 +32,13 @@ func (s *Services) Transaction(c context.Context, p *models.ReqTransaction) (res
 		Where: map[string]interface{}{
 			"tug.user_grade_id": userGrade.Data.(*models.UserGrades).ID,
 			"t.status":          []string{h.Status.Pending, h.Status.Transfered, h.Status.Checked}},
-		Select: "*",
-	})
+			Select: "*",
+		})
 	if UserGradeStatus.Data.(int64) > 0 {
 		return result, r.ReplyError("There are still active grade upgrade transactions", http.StatusInternalServerError)
+	}
+	if userGrade.Data.(*models.UserGrades).GradeID >= p.GradeID {
+		return result, r.ReplyError("Cannot create transaction", http.StatusConflict)
 	}
 
 	var grade = <-s.Repository.Find(&rep.Payload{
