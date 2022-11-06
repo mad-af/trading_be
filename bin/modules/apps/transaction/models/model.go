@@ -64,11 +64,11 @@ type (
 	}
 
 	TransactionStatus struct {
-		ID            string    `json:"id"`
-		TransactionID string    `json:"transaction_id"`
-		Status        string    `json:"status"`
-		CreatedBy     string    `json:"created_by"`
-		CreatedAt     time.Time `json:"created_at"`
+		ID            string    `json:"id,omitempty"`
+		TransactionID string    `json:"transaction_id,omitempty"`
+		Status        string    `json:"status,omitempty"`
+		CreatedBy     string    `json:"created_by,omitempty"`
+		CreatedAt     time.Time `json:"created_at,omitempty"`
 	}
 
 	Users struct {
@@ -86,15 +86,12 @@ type (
 
 // COMMON
 type (
-	UserDetail struct {
-		Users
-		GradeID      int    `json:"grade_id"`
-		GradeName    string `json:"grade_name"`
-		RoleName     string `json:"role_name"`
-		BalanceValue int    `json:"balance_value"`
+	TransactionDetail struct {
+		TransactionData
+		TransactionStatus   []TransactionStatus `json:"transaction_status"`
 	}
 
-	TransactionList struct {
+	TransactionData struct {
 		Transactions
 		UserName            string    `json:"user_name"`
 		BankName            string    `json:"bank_name"`

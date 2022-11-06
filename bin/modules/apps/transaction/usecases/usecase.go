@@ -103,7 +103,7 @@ func (s *Services) Update(c context.Context, p *models.ReqUpdate) (result r.Send
 }
 
 func (s *Services) GetList(c context.Context, p *models.ReqGetList) (result r.SendData, err error) {
-	var res = make([]models.TransactionList, 0)
+	var res = make([]models.TransactionData, 0)
 	var meta = r.Meta{Page: p.Query.Page}
 	result.Data = &res
 	result.Meta = &meta
@@ -143,7 +143,7 @@ func (s *Services) GetList(c context.Context, p *models.ReqGetList) (result r.Se
 		Order:  strings.Join(p.Query.Sort, " "),
 		Offset: p.Query.Quantity * (p.Query.Page - 1),
 		Limit:  p.Query.Quantity,
-		Output: []models.TransactionList{},
+		Output: []models.TransactionData{},
 	})
 	if transaction.Error != nil {
 		return result, nil
@@ -151,30 +151,40 @@ func (s *Services) GetList(c context.Context, p *models.ReqGetList) (result r.Se
 	meta.Quantity = int(transaction.Row)
 	meta.TotalPage = int(math.Ceil(float64((meta.TotalData + p.Query.Quantity - 1) / p.Query.Quantity)))
 
-	res = transaction.Data.([]models.TransactionList)
+	res = transaction.Data.([]models.TransactionData)
 	return result, nil
 }
 
 func (s *Services) GetDetail(c context.Context, p *models.ReqGetDetail) (result r.SendData, err error) {
-	var res = new(models.UserDetail)
+	var res = new(models.TransactionDetail)
 	result.Data = &res
 
-	var user = <-s.Repository.Find(&rep.Payload{
-		Table: "users u",
+	var transaction = <-s.Repository.Find(&rep.Payload{
+		Table: "transactions t",
 		Join: `
-			inner join user_grades ug on ug.user_id = u.id
-			left join grades g on g.id = ug.grade_id
-			left join roles r on r.id = u.role_id
-			left join balances b on b.user_id = u.id`,
-		Where:  map[string]interface{}{"u.id": p.Param.ID},
-		Select: "u.*, g.id as grade_id, g.name as grade_name, r.name as role_name, b.value as balance_value",
-		Output: &models.UserDetail{},
+			inner join users u on u.id = t.user_id
+			inner join banks b on b.id = t.bank_id
+			inner join transaction_types tt on tt.id = t.transaction_type_id
+			inner join transaction_status ts on ts.transaction_id = t.id and ts.status = 'pending'
+			inner join transaction_status ts1 on ts1.transaction_id = t.id and ts1.status = t.status`,
+		Where:  map[string]interface{}{"t.id": p.Param.ID},
+		Select: `t.*, u.name as user_name, b.name as bank_name, tt.name as transaction_type_name, 
+			ts.created_at, ts1.created_at as updated_at`,
+		Output: &models.TransactionData{},
 	})
-	if user.Error != nil || user.Row == 0 {
-		return result, r.ReplyError("User not found", http.StatusNotFound)
+	if transaction.Error != nil || transaction.Row == 0 {
+		return result, r.ReplyError("Transaction not found", http.StatusNotFound)
 	}
+	var bt, _ = json.Marshal(transaction.Data)
+	json.Unmarshal(bt, &res)
 
-	res = user.Data.(*models.UserDetail)
+	var transactionStatus = <-s.Repository.Find(&rep.Payload{
+		Table: "transaction_status ts",
+		Where:  map[string]interface{}{"ts.transaction_id": p.Param.ID},
+		Select: `ts.*`,
+		Output: []models.TransactionStatus{},
+	})
 
+	res.TransactionStatus = transactionStatus.Data.([]models.TransactionStatus)
 	return result, nil
 }
