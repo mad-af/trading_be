@@ -16,7 +16,6 @@ import (
 type JwtClaim struct {
 	RoleID  int    `json:"role_id"`
 	UserID  string `json:"user_id"`
-	GradeID int    `json:"grade_id"`
 	Token   string `json:"token,omitempty"`
 }
 

@@ -46,9 +46,8 @@ func (s *Services) Login(c context.Context, p *models.ReqLogin) (result r.SendDa
 	err = r.ReplyError("Invalid username and password Please try again", http.StatusUnauthorized)
 	var user = <-s.Repository.Find(&rep.Payload{
 		Table:  "users u",
-		Join:   "inner join user_grades ug on ug.user_id = u.id",
 		Where:  map[string]interface{}{"username": p.Username},
-		Select: "u.*, ug.grade_id",
+		Select: "u.*",
 		Output: &models.UserDetail{},
 	})
 	if user.Error != nil {
@@ -65,7 +64,6 @@ func (s *Services) Login(c context.Context, p *models.ReqLogin) (result r.SendDa
 	var token, terr = middleware.GenerateToken(middleware.JwtClaim{
 		RoleID:  userData.RoleID,
 		UserID:  userData.ID,
-		GradeID: userData.GradeID,
 	})
 	if terr != nil {
 		return result, terr
