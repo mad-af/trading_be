@@ -111,6 +111,8 @@ func (s *Services) GetList(c context.Context, p *models.ReqGetList) (result r.Se
 		WhereRaw: search,
 		Select:   "u.*, g.name as grade_name, r.name as role_name",
 		Order:    strings.Join(p.Query.Sort, " "),
+		Offset: p.Query.Quantity * (p.Query.Page - 1),
+		Limit:  p.Query.Quantity,
 		Output:   []models.UserList{},
 	})
 	if users.Error != nil {

@@ -1,9 +1,7 @@
 package repositories
 
 import (
-	"trading_be/bin/modules/apps/user/models"
-
-	"gorm.io/gorm"
+	"trading_be/bin/modules/apps/grade/models"
 )
 
 type res struct {
@@ -19,40 +17,40 @@ type Payload struct {
 	Join     string
 	Select   string
 	Order    string
-	Limit     int
-	Offset    int
 	Output   interface{}
 }
 
-func (o *Options) CreateUser(user *models.Users) <-chan res {
+func (o *Options) CreateTransactionUserGrade(data *models.TransactionUserGrades) <-chan res {
 	var output = make(chan res)
 
 	go func() {
 		defer close(output)
 
-		var err = o.DB.Transaction(func(tx *gorm.DB) error {
-			if err := tx.Create(&user).Error; err != nil {
-				return err
-			}
-
-			if user.RoleID == 1 {
-				if err := tx.Create(&models.Balances{UserID: user.ID}).Error; err != nil {
-					return err
-				}
-
-				if err := tx.Create(&models.UserGrades{UserID: user.ID, GradeID: 1}).Error; err != nil {
-					return err
-				}
-			}
-
-			return nil
-		})
-		if err != nil {
-			output <- res{Error: err}
+		var db = o.DB.Create(&data)
+		if db.Error != nil {
+			output <- res{Error: db.Error}
 			return
 		}
 
-		output <- res{Data: user.ID}
+		output <- res{Data: data}
+	}()
+
+	return output
+}
+
+func (o *Options) UpdateUserGrade(data *models.UserGrades) <-chan res {
+	var output = make(chan res)
+
+	go func() {
+		defer close(output)
+
+		var db = o.DB.Table("user_grades").Where("id = ?", data.ID).Select("grade_id").Updates(&data)
+		if db.Error != nil {
+			output <- res{Error: db.Error}
+			return
+		}
+
+		output <- res{Data: data}
 	}()
 
 	return output
@@ -64,7 +62,7 @@ func (o *Options) Find(p *Payload) <-chan res {
 	go func() {
 		defer close(output)
 
-		var db = o.DB.Table(p.Table).Select(p.Select).Where(p.Where).Where(p.WhereRaw).Order(p.Order).Joins(p.Join).Limit(p.Limit).Offset(p.Offset).Find(&p.Output)
+		var db = o.DB.Table(p.Table).Select(p.Select).Where(p.Where).Where(p.WhereRaw).Order(p.Order).Joins(p.Join).Find(&p.Output)
 		if db.Error != nil {
 			output <- res{Error: db.Error}
 			return

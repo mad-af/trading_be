@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"encoding/json"
 	"net/http"
 	"strings"
 	"time"
@@ -16,6 +17,7 @@ type JwtClaim struct {
 	RoleID  int    `json:"role_id"`
 	UserID  string `json:"user_id"`
 	GradeID int    `json:"grade_id"`
+	Token   string `json:"token,omitempty"`
 }
 
 func GenerateToken(claim JwtClaim) (string, error) {
@@ -71,9 +73,13 @@ func VerifyBearerToken() echo.MiddlewareFunc {
 				return r.ReplyError("token parsing error", http.StatusUnauthorized)
 			}
 
+			var opts JwtClaim
+			var b, _ = json.Marshal(tokenParse.Claims)
+			json.Unmarshal(b, &opts)
+			opts.Token = tokenParse.Raw
+			c.Set("opts", opts)
+
 			return next(c)
 		}
 	}
 }
-
-

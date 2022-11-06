@@ -16,6 +16,7 @@ import (
 
 var Env struct {
 	HttpPort string `json:"HTTP_PORT"`
+	ApiUrl   string `json:"API_URL"`
 	// POSTGRESQL
 	PostgreHost     string `json:"POSTGRES_HOST"`
 	PostgreUser     string `json:"POSTGRES_USER"`
@@ -38,7 +39,6 @@ func init() {
 		panic(err)
 	}
 	rootApp := strings.TrimSuffix(path, "/config")
-	fmt.Println(rootApp)
 	os.Setenv("APP_PATH", rootApp)
 
 	var myEnv map[string]string
