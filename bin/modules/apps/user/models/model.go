@@ -28,6 +28,13 @@ type (
 		Password string `json:"password"`
 	}
 
+	ReqUpdate struct {
+		Param struct {
+			ID string `param:"id"`
+		}
+		Name string `json:"name" validate:"required"`
+	}
+
 	ReqLogin struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
@@ -68,8 +75,8 @@ type (
 	}
 
 	UserGrades struct {
-		UserID    string    `json:"user_id"`
-		GradeID   int       `json:"grade_id"`
+		UserID  string `json:"user_id"`
+		GradeID int    `json:"grade_id"`
 	}
 )
 

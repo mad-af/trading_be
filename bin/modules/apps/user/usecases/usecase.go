@@ -62,8 +62,8 @@ func (s *Services) Login(c context.Context, p *models.ReqLogin) (result r.SendDa
 	}
 
 	var token, terr = middleware.GenerateToken(middleware.JwtClaim{
-		RoleID:  userData.RoleID,
-		UserID:  userData.ID,
+		RoleID: userData.RoleID,
+		UserID: userData.ID,
 	})
 	if terr != nil {
 		return result, terr
@@ -73,6 +73,22 @@ func (s *Services) Login(c context.Context, p *models.ReqLogin) (result r.SendDa
 		ID:    userData.ID,
 		Token: token,
 	}
+	return result, nil
+}
+
+func (s *Services) Update(c context.Context, p *models.ReqUpdate) (result r.SendData, err error) {
+	var res = new(map[string]interface{})
+	result.Data = &res
+
+	var user = <-s.Repository.UpdateUser(&models.Users{
+		ID:   p.Param.ID,
+		Name: p.Name,
+	})
+	if user.Error != nil {
+		return result, user.Error
+	}
+
+	res = &map[string]interface{}{"id": user.Data}
 	return result, nil
 }
 
@@ -109,8 +125,8 @@ func (s *Services) GetList(c context.Context, p *models.ReqGetList) (result r.Se
 		WhereRaw: search,
 		Select:   "u.*, g.name as grade_name, r.name as role_name",
 		Order:    strings.Join(p.Query.Sort, " "),
-		Offset: p.Query.Quantity * (p.Query.Page - 1),
-		Limit:  p.Query.Quantity,
+		Offset:   p.Query.Quantity * (p.Query.Page - 1),
+		Limit:    p.Query.Quantity,
 		Output:   []models.UserList{},
 	})
 	if users.Error != nil {

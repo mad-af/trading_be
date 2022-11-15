@@ -17,6 +17,7 @@ type (
 		// COMMAND
 		Create(context.Context, *models.ReqCreate) (res.SendData, error)
 		Login(context.Context, *models.ReqLogin) (res.SendData, error)
+		Update(context.Context, *models.ReqUpdate) (res.SendData, error)
 
 		// QUERY
 		GetList(context.Context, *models.ReqGetList) (res.SendData, error)
