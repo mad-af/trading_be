@@ -58,6 +58,24 @@ func (o *Options) CreateUser(user *models.Users) <-chan res {
 	return output
 }
 
+func (o *Options) UpdateUser(user *models.Users) <-chan res {
+	var output = make(chan res)
+
+	go func() {
+		defer close(output)
+
+		var db = o.DB.Table("users").Where("id = ?", user.ID).Select("name").Updates(&user)
+		if db.Error != nil {
+			output <- res{Error: db.Error}
+			return
+		}
+
+		output <- res{Data: user.ID}
+	}()
+
+	return output
+}
+
 func (o *Options) Find(p *Payload) <-chan res {
 	var output = make(chan res)
 

@@ -23,6 +23,7 @@ var u usecases.Interface = &usecases.Services{
 func Init(g *echo.Group) {
 	g.POST("/v1/user", Create, m.BasicAuth())
 	g.POST("/v1/user/login", Login, m.BasicAuth())
+	g.PUT("/v1/user/:id", Update, m.VerifyBearerToken())
 	g.GET("/v1/user", GetList, m.VerifyBearerToken())
 	g.GET("/v1/user/:id", GetDetail, m.VerifyBearerToken())
 }
@@ -52,6 +53,20 @@ func Login(c echo.Context) error {
 		return err
 	}
 	data.Message = "Login"
+	return res.Reply(&data, c)
+}
+
+func Update(c echo.Context) error {
+	var req = new(models.ReqUpdate)
+	if err := utils.BindValidate(c, req); err != nil {
+		return err
+	}
+
+	var data, err = u.Update(c.Request().Context(), req)
+	if err != nil {
+		return err
+	}
+	data.Message = "Update User"
 	return res.Reply(&data, c)
 }
 

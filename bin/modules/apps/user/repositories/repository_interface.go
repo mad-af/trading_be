@@ -13,6 +13,7 @@ type (
 
 	Interface interface {
 		CreateUser(*models.Users) <-chan res
+		UpdateUser(*models.Users) <-chan res
 		Find(*Payload) <-chan res
 		Count(*Payload) <-chan res
 	}
